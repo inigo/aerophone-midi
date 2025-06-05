@@ -57,9 +57,9 @@ export class NotationRenderer {
     this.stave.setContext(this.context).draw()
     
     if (this.notes.length > 0) {
-      const displayNotes = this.notes.slice(-8)
+      const displayNotes = this.notes.slice(-4) // Only show last 4 notes
       
-      // Pad notes to fill 4 beats if needed
+      // Pad notes to fill exactly 4 beats
       const paddedNotes = [...displayNotes]
       while (paddedNotes.length < 4) {
         paddedNotes.push(new StaveNote({
