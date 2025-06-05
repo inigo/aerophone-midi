@@ -10,6 +10,13 @@ vi.mock('webmidi', () => ({
   }
 }))
 
+vi.mock('../notation', () => ({
+  NotationRenderer: vi.fn().mockImplementation(() => ({
+    addNote: vi.fn(),
+    clearNotes: vi.fn()
+  }))
+}))
+
 describe('MIDIApp', () => {
   let app: MIDIApp
   
@@ -17,6 +24,7 @@ describe('MIDIApp', () => {
     document.body.innerHTML = `
       <div id="device-list"></div>
       <pre id="message-log"></pre>
+      <div id="stave-container"></div>
     `
     app = new MIDIApp()
   })

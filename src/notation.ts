@@ -50,7 +50,7 @@ export class NotationRenderer {
   }
 
   private redrawStave(): void {
-    if (!this.context || !this.stave || !this.voice) return
+    if (!this.context || !this.stave) return
     
     this.context.clear()
     
@@ -59,8 +59,18 @@ export class NotationRenderer {
     if (this.notes.length > 0) {
       const displayNotes = this.notes.slice(-8)
       
-      this.voice.resetVoice()
-      this.voice.addTickables(displayNotes)
+      // Pad notes to fill 4 beats if needed
+      const paddedNotes = [...displayNotes]
+      while (paddedNotes.length < 4) {
+        paddedNotes.push(new StaveNote({
+          clef: 'treble',
+          keys: ['b/4'],
+          duration: 'qr' // quarter rest
+        }))
+      }
+      
+      this.voice = new Voice({ num_beats: 4, beat_value: 4 })
+      this.voice.addTickables(paddedNotes)
       
       const formatter = new Formatter()
       formatter.joinVoices([this.voice]).format([this.voice], 700)
