@@ -23,7 +23,9 @@ vi.mock('vexflow', () => {
       draw: vi.fn()
     })),
     StaveNote: vi.fn().mockImplementation((config) => ({
-      keys: config?.keys || ['c/4']
+      keys: config?.keys || ['c/4'],
+      addModifier: vi.fn(),
+      modifiers: []
     })),
     Voice: vi.fn().mockImplementation(() => ({
       resetVoice: vi.fn(),
@@ -33,6 +35,9 @@ vi.mock('vexflow', () => {
     Formatter: vi.fn().mockImplementation(() => ({
       joinVoices: vi.fn().mockReturnThis(),
       format: vi.fn()
+    })),
+    Accidental: vi.fn().mockImplementation((type) => ({
+      type: type
     }))
   }
 })

@@ -1,4 +1,4 @@
-import { Renderer, Stave, StaveNote, Voice, Formatter } from 'vexflow'
+import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } from 'vexflow'
 
 export class NotationRenderer {
   private renderer: Renderer | null = null
@@ -32,8 +32,7 @@ export class NotationRenderer {
   }
 
   addNote(midiNote: number): void {
-    const noteName = this.midiToNoteName(midiNote)
-    const octave = this.midiToOctave(midiNote)
+    const { noteName, octave, accidental } = this.midiToNoteInfo(midiNote)
     
     try {
       const note = new StaveNote({
@@ -41,6 +40,11 @@ export class NotationRenderer {
         keys: [`${noteName}/${octave}`],
         duration: 'q'
       })
+      
+      // Add accidental if needed
+      if (accidental) {
+        note.addModifier(accidental, 0)
+      }
       
       this.notes.push(note)
       this.redrawStave()
@@ -60,13 +64,22 @@ export class NotationRenderer {
       const displayNotes = this.notes.slice(-16) // Show last 16 notes
       
       // Use sixteenth notes to fit more notes
-      const compactNotes = displayNotes.map(note => 
-        new StaveNote({
+      const compactNotes = displayNotes.map(note => {
+        const compactNote = new StaveNote({
           clef: 'treble',
           keys: note.keys || ['c/4'], // Keep the same pitch or default
           duration: '16' // Sixteenth note
         })
-      )
+        
+        // Copy any modifiers (like accidentals) from original note
+        if (note.modifiers) {
+          note.modifiers.forEach((modifier: any) => {
+            compactNote.addModifier(modifier, 0)
+          })
+        }
+        
+        return compactNote
+      })
       
       // Pad to fill exactly 4 beats (16 sixteenth notes = 4 quarter notes)
       while (compactNotes.length < 16) {
@@ -87,13 +100,31 @@ export class NotationRenderer {
     }
   }
 
-  private midiToNoteName(midiNote: number): string {
-    const noteNames = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
-    return noteNames[midiNote % 12]
-  }
-
-  private midiToOctave(midiNote: number): number {
-    return Math.floor(midiNote / 12) - 1
+  private midiToNoteInfo(midiNote: number): { noteName: string; octave: number; accidental: Accidental | null } {
+    const noteMap = [
+      { name: 'c', accidental: null },           // 0 - C
+      { name: 'c', accidental: new Accidental('#') }, // 1 - C#
+      { name: 'd', accidental: null },           // 2 - D
+      { name: 'd', accidental: new Accidental('#') }, // 3 - D#
+      { name: 'e', accidental: null },           // 4 - E
+      { name: 'f', accidental: null },           // 5 - F
+      { name: 'f', accidental: new Accidental('#') }, // 6 - F#
+      { name: 'g', accidental: null },           // 7 - G
+      { name: 'g', accidental: new Accidental('#') }, // 8 - G#
+      { name: 'a', accidental: null },           // 9 - A
+      { name: 'a', accidental: new Accidental('#') }, // 10 - A#
+      { name: 'b', accidental: null },           // 11 - B
+    ]
+    
+    const noteIndex = midiNote % 12
+    const octave = Math.floor(midiNote / 12) - 1
+    const noteInfo = noteMap[noteIndex]
+    
+    return {
+      noteName: noteInfo.name,
+      octave: octave,
+      accidental: noteInfo.accidental
+    }
   }
 
   clearNotes(): void {
