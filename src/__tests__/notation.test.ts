@@ -22,7 +22,9 @@ vi.mock('vexflow', () => {
       setContext: vi.fn().mockReturnThis(),
       draw: vi.fn()
     })),
-    StaveNote: vi.fn().mockImplementation(() => ({})),
+    StaveNote: vi.fn().mockImplementation((config) => ({
+      keys: config?.keys || ['c/4']
+    })),
     Voice: vi.fn().mockImplementation(() => ({
       resetVoice: vi.fn(),
       addTickables: vi.fn(),

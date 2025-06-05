@@ -57,20 +57,28 @@ export class NotationRenderer {
     this.stave.setContext(this.context).draw()
     
     if (this.notes.length > 0) {
-      const displayNotes = this.notes.slice(-4) // Only show last 4 notes
+      const displayNotes = this.notes.slice(-16) // Show last 16 notes
       
-      // Pad notes to fill exactly 4 beats
-      const paddedNotes = [...displayNotes]
-      while (paddedNotes.length < 4) {
-        paddedNotes.push(new StaveNote({
+      // Use sixteenth notes to fit more notes
+      const compactNotes = displayNotes.map(note => 
+        new StaveNote({
+          clef: 'treble',
+          keys: note.keys || ['c/4'], // Keep the same pitch or default
+          duration: '16' // Sixteenth note
+        })
+      )
+      
+      // Pad to fill exactly 4 beats (16 sixteenth notes = 4 quarter notes)
+      while (compactNotes.length < 16) {
+        compactNotes.push(new StaveNote({
           clef: 'treble',
           keys: ['b/4'],
-          duration: 'qr' // quarter rest
+          duration: '16r' // sixteenth rest
         }))
       }
       
       this.voice = new Voice({ num_beats: 4, beat_value: 4 })
-      this.voice.addTickables(paddedNotes)
+      this.voice.addTickables(compactNotes)
       
       const formatter = new Formatter()
       formatter.joinVoices([this.voice]).format([this.voice], 700)
