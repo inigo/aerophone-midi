@@ -131,18 +131,14 @@ export class NotationRenderer {
     this.stave.setContext(this.context).draw()
     
     if (this.notes.length > 0) {
-      // Simple approach: just show the last note with fixed quarter note duration
-      const lastNote = this.notes[this.notes.length - 1]
+      // Select notes that fit within 4 beats, starting from the most recent
+      const notesToShow = this.selectNotesForDisplay()
       
-      // Create notes to fill exactly 4 quarter beats
-      const notesToShow = []
-      const lastNoteDuration = (lastNote as any).duration || 'q'
-      const lastNoteDurationValue = this.getNoteDurationValue(lastNoteDuration)
+      // Calculate total duration and add rests if needed
+      const totalDuration = this.calculateTotalDuration(notesToShow)
+      let remainingBeats = 4 - totalDuration
       
-      notesToShow.push(lastNote)
-      
-      // Fill remaining beats with rests
-      let remainingBeats = 4 - lastNoteDurationValue
+      // Add rests to fill the remaining time
       while (remainingBeats > 0) {
         if (remainingBeats >= 1) {
           notesToShow.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: 'qr' }))
@@ -164,6 +160,29 @@ export class NotationRenderer {
       
       this.voice.draw(this.context, this.stave)
     }
+  }
+
+  private selectNotesForDisplay(): StaveNote[] {
+    const result: StaveNote[] = []
+    let totalDuration = 0
+    
+    // Start from the most recent note and work backwards
+    for (let i = this.notes.length - 1; i >= 0; i--) {
+      const note = this.notes[i]
+      const noteDuration = (note as any).duration || 'q'
+      const noteDurationValue = this.getNoteDurationValue(noteDuration)
+      
+      // If adding this note would exceed 4 beats, stop
+      if (totalDuration + noteDurationValue > 4) {
+        break
+      }
+      
+      // Add the note to the beginning of our result array
+      result.unshift(note)
+      totalDuration += noteDurationValue
+    }
+    
+    return result
   }
 
   private calculateTotalDuration(notes: StaveNote[]): number {
