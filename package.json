@@ -1,0 +1,39 @@
+{
+  "name": "aerophone-midi",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "@vitejs/plugin-legacy": "^6.1.1",
+    "@vitest/ui": "^3.2.1",
+    "eslint": "^9.17.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.1"
+  },
+  "dependencies": {
+    "webmidi": "^3.1.11"
+  },
+  "description": "Web MIDI application built with Vite and TypeScript",
+  "keywords": [
+    "midi",
+    "web-midi",
+    "typescript",
+    "vite"
+  ],
+  "author": "",
+  "license": "GPL-3.0"
+}
