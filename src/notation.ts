@@ -30,13 +30,13 @@ export class NotationRenderer {
     container.innerHTML = ''
     
     this.renderer = new Renderer(container, Renderer.Backends.SVG)
-    this.renderer.resize(800, 1600) // Taller to accommodate 8 staves
+    this.renderer.resize(800, 1200) // Adjusted height for closer spacing
     this.context = this.renderer.getContext()
     
     // Create 8 staves
     this.staves = []
     for (let i = 0; i < 8; i++) {
-      const stave = new Stave(10, 40 + (i * 180), 750) // 180px spacing between staves
+      const stave = new Stave(10, 40 + (i * 140), 750) // 140px spacing between staves
       if (i === 0) {
         stave.addClef('treble').addTimeSignature('4/4')
       } else {
