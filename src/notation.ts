@@ -10,10 +10,11 @@ interface ActiveNote {
 export class NotationRenderer {
   private renderer: Renderer | null = null
   private context: any = null
-  private stave: Stave | null = null
+  private staves: Stave[] = []
   private notes: StaveNote[] = []
   private voice: Voice | null = null
   private activeNotes: Map<number, ActiveNote> = new Map()
+  private currentStaveIndex: number = 0
 
   constructor(containerId: string) {
     this.initializeRenderer(containerId)
@@ -29,12 +30,21 @@ export class NotationRenderer {
     container.innerHTML = ''
     
     this.renderer = new Renderer(container, Renderer.Backends.SVG)
-    this.renderer.resize(800, 200)
+    this.renderer.resize(800, 1600) // Taller to accommodate 8 staves
     this.context = this.renderer.getContext()
     
-    this.stave = new Stave(10, 40, 750)
-    this.stave.addClef('treble').addTimeSignature('4/4')
-    this.stave.setContext(this.context).draw()
+    // Create 8 staves
+    this.staves = []
+    for (let i = 0; i < 8; i++) {
+      const stave = new Stave(10, 40 + (i * 180), 750) // 180px spacing between staves
+      if (i === 0) {
+        stave.addClef('treble').addTimeSignature('4/4')
+      } else {
+        stave.addClef('treble')
+      }
+      stave.setContext(this.context).draw()
+      this.staves.push(stave)
+    }
     
     this.voice = new Voice({ num_beats: 4, beat_value: 4 })
   }
@@ -124,42 +134,84 @@ export class NotationRenderer {
   }
 
   private redrawStave(): void {
-    if (!this.context || !this.stave) return
+    if (!this.context || this.staves.length === 0) return
     
     this.context.clear()
     
-    this.stave.setContext(this.context).draw()
+    // Redraw all staves
+    this.staves.forEach(stave => stave.setContext(this.context).draw())
     
     if (this.notes.length > 0) {
-      // Select notes that fit within 4 beats, starting from the most recent
-      const notesToShow = this.selectNotesForDisplay()
+      // Group notes into staves (each stave holds 4 beats)
+      const stavesData = this.groupNotesIntoStaves()
       
-      // Calculate total duration and add rests if needed
-      const totalDuration = this.calculateTotalDuration(notesToShow)
-      let remainingBeats = 4 - totalDuration
-      
-      // Add rests to fill the remaining time
-      while (remainingBeats > 0) {
-        if (remainingBeats >= 1) {
-          notesToShow.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: 'qr' }))
-          remainingBeats -= 1
-        } else if (remainingBeats >= 0.5) {
-          notesToShow.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: '8r' }))
-          remainingBeats -= 0.5
-        } else {
-          notesToShow.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: '16r' }))
-          remainingBeats -= 0.25
+      // Draw notes on each stave
+      stavesData.forEach((staveNotes, index) => {
+        if (index < this.staves.length && staveNotes.length > 0) {
+          this.drawNotesOnStave(staveNotes, this.staves[index])
         }
+      })
+    }
+  }
+
+  private groupNotesIntoStaves(): StaveNote[][] {
+    const stavesData: StaveNote[][] = []
+    let currentStaveNotes: StaveNote[] = []
+    let currentStaveDuration = 0
+    
+    // Process notes from oldest to newest
+    for (const note of this.notes) {
+      const noteDuration = (note as any).duration || 'q'
+      const noteDurationValue = this.getNoteDurationValue(noteDuration)
+      
+      // If adding this note would exceed 4 beats, start a new stave
+      if (currentStaveDuration + noteDurationValue > 4 && currentStaveNotes.length > 0) {
+        // Fill current stave with rests
+        this.fillStaveWithRests(currentStaveNotes, 4 - currentStaveDuration)
+        stavesData.push(currentStaveNotes)
+        
+        // Start new stave
+        currentStaveNotes = []
+        currentStaveDuration = 0
       }
       
-      this.voice = new Voice({ num_beats: 4, beat_value: 4 })
-      this.voice.addTickables(notesToShow)
-      
-      const formatter = new Formatter()
-      formatter.joinVoices([this.voice]).format([this.voice], 700)
-      
-      this.voice.draw(this.context, this.stave)
+      currentStaveNotes.push(note)
+      currentStaveDuration += noteDurationValue
     }
+    
+    // Handle the last stave
+    if (currentStaveNotes.length > 0) {
+      this.fillStaveWithRests(currentStaveNotes, 4 - currentStaveDuration)
+      stavesData.push(currentStaveNotes)
+    }
+    
+    // Keep only the last 8 staves
+    return stavesData.slice(-8)
+  }
+
+  private fillStaveWithRests(notes: StaveNote[], remainingBeats: number): void {
+    while (remainingBeats > 0) {
+      if (remainingBeats >= 1) {
+        notes.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: 'qr' }))
+        remainingBeats -= 1
+      } else if (remainingBeats >= 0.5) {
+        notes.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: '8r' }))
+        remainingBeats -= 0.5
+      } else {
+        notes.push(new StaveNote({ clef: 'treble', keys: ['b/4'], duration: '16r' }))
+        remainingBeats -= 0.25
+      }
+    }
+  }
+
+  private drawNotesOnStave(notes: StaveNote[], stave: Stave): void {
+    const voice = new Voice({ num_beats: 4, beat_value: 4 })
+    voice.addTickables(notes)
+    
+    const formatter = new Formatter()
+    formatter.joinVoices([voice]).format([voice], 700)
+    
+    voice.draw(this.context, stave)
   }
 
   private selectNotesForDisplay(): StaveNote[] {
