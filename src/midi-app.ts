@@ -70,11 +70,12 @@ export class MIDIApp {
 
   private setupInputListeners(input: Input): void {
     input.addListener('noteon', (event) => {
-      this.notationRenderer.addNote(event.note.number)
+      this.notationRenderer.startNote(event.note.number)
       this.logMessage(`${input.name}: Note ON - ${event.note.name}${event.note.octave} (velocity: ${event.velocity})`)
     })
     
     input.addListener('noteoff', (event) => {
+      this.notationRenderer.endNote(event.note.number)
       this.logMessage(`${input.name}: Note OFF - ${event.note.name}${event.note.octave}`)
     })
     
