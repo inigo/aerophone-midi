@@ -83,10 +83,10 @@ export class NotationRenderer {
     const elapsed = Date.now() - activeNote.startTime
     let newDuration = '16' // sixteenth note (shortest)
     
-    if (elapsed > 125) newDuration = '8'   // eighth note
-    if (elapsed > 250) newDuration = 'q'   // quarter note  
-    if (elapsed > 500) newDuration = 'h'   // half note
-    if (elapsed > 1000) newDuration = 'w'  // whole note
+    if (elapsed > 150) newDuration = '8'   // eighth note
+    if (elapsed > 400) newDuration = 'q'   // quarter note  
+    if (elapsed > 1000) newDuration = 'h'  // half note
+    if (elapsed > 2500) newDuration = 'q'  // back to quarter for very long notes
     
     if (newDuration !== activeNote.duration) {
       activeNote.duration = newDuration
