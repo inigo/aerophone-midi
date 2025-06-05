@@ -25,6 +25,7 @@
     "vitest": "^3.2.1"
   },
   "dependencies": {
+    "vexflow": "^5.0.0",
     "webmidi": "^3.1.11"
   },
   "description": "Web MIDI application built with Vite and TypeScript",

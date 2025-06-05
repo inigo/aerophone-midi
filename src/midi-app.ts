@@ -1,13 +1,16 @@
 import { WebMidi, Input } from 'webmidi'
+import { NotationRenderer } from './notation'
 
 export class MIDIApp {
   private deviceListElement: HTMLElement | null = null
   private messageLogElement: HTMLElement | null = null
   private messageCount = 0
+  private notationRenderer: NotationRenderer
 
   constructor() {
     this.deviceListElement = document.getElementById('device-list')
     this.messageLogElement = document.getElementById('message-log')
+    this.notationRenderer = new NotationRenderer('stave-container')
   }
 
   initialize(): void {
@@ -66,6 +69,15 @@ export class MIDIApp {
   }
 
   private setupInputListeners(input: Input): void {
+    input.addListener('noteon', (event) => {
+      this.notationRenderer.addNote(event.note.number)
+      this.logMessage(`${input.name}: Note ON - ${event.note.name}${event.note.octave} (velocity: ${event.velocity})`)
+    })
+    
+    input.addListener('noteoff', (event) => {
+      this.logMessage(`${input.name}: Note OFF - ${event.note.name}${event.note.octave}`)
+    })
+    
     input.addListener('midimessage', (event) => {
       this.logMessage(`${input.name}: ${this.formatMIDIMessage(event.message)}`)
     })
