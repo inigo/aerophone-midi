@@ -31,20 +31,38 @@ export class MidiFileHandler {
     this.currentNotes = []
     this.notationRenderer.clearNotes()
 
-    // Process each track
-    for (const track of midiData.track) {
-      this.processTrack(track)
+    console.log('MIDI data structure:', midiData)
+
+    // Process each track - handle different possible structures
+    if (midiData.track && Array.isArray(midiData.track)) {
+      for (const track of midiData.track) {
+        this.processTrack(track)
+      }
+    } else if (midiData.tracks && Array.isArray(midiData.tracks)) {
+      for (const track of midiData.tracks) {
+        this.processTrack(track)
+      }
+    } else {
+      console.error('Unexpected MIDI data structure:', midiData)
+      throw new Error('Invalid MIDI file structure')
     }
 
     // Display notes on staves
     this.displayNotes()
   }
 
-  private processTrack(track: any[]): void {
+  private processTrack(track: any): void {
     const activeNotes = new Map<number, { startTime: number; velocity: number }>()
     let currentTime = 0
 
-    for (const event of track) {
+    // Handle different track structures
+    const events = track.event || track.events || track
+    if (!Array.isArray(events)) {
+      console.warn('Track is not an array of events:', track)
+      return
+    }
+
+    for (const event of events) {
       currentTime += event.deltaTime || 0
 
       if (event.type === 9 && event.data && event.data.length >= 2) { // Note On
