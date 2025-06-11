@@ -116,12 +116,38 @@ describe('MIDI File Parsing', () => {
       
       const isDrums = channel === 9 || trackName.includes('drum') || trackName.includes('percussion')
       
+      // Simulate the priority logic for testing
+      let priority = 80 // default for unknown
+      let instrumentName = 'unknown'
+      let isOrchestral = false
+      
+      if (programNumber !== null) {
+        // Major Level 1: Alto sax
+        if (programNumber === 65) { priority = 1; instrumentName = 'alto sax' }
+        // Major Level 2: Any sax (64, 66, 67)
+        else if (programNumber === 64) { priority = 2; instrumentName = 'soprano sax' }
+        else if (programNumber === 66) { priority = 2; instrumentName = 'tenor sax' }
+        else if (programNumber === 67) { priority = 2; instrumentName = 'baritone sax' }
+        // Major Level 3: Flute, clarinet, trumpet, violin
+        else if (programNumber === 73) { priority = 3; instrumentName = 'flute' }
+        else if (programNumber === 71) { priority = 3; instrumentName = 'clarinet' }
+        else if (programNumber >= 56 && programNumber <= 63) { priority = 3; instrumentName = 'trumpet' }
+        else if (programNumber >= 40 && programNumber <= 47) { priority = 3; instrumentName = 'violin'; isOrchestral = true }
+        // Major Level 4: Other wind instruments  
+        else if (programNumber === 68) { priority = 4; instrumentName = 'oboe' }
+        else if (programNumber === 69) { priority = 4; instrumentName = 'english horn' }
+        else if (programNumber === 70) { priority = 4; instrumentName = 'bassoon' }
+        else if (programNumber === 72) { priority = 4; instrumentName = 'piccolo' }
+        else if (programNumber >= 74 && programNumber <= 79) { priority = 4; instrumentName = 'wind instrument' }
+        else if (programNumber >= 48 && programNumber <= 55) { priority = 4; instrumentName = 'wind instrument' }
+      }
+      
       return {
-        instrumentPriority: 50,
+        instrumentPriority: priority,
         noteCount,
         isDrums,
-        isOrchestral: false,
-        instrumentName: 'unknown',
+        isOrchestral,
+        instrumentName,
         channel,
         programNumber,
         trackName
@@ -160,5 +186,39 @@ describe('MIDI File Parsing', () => {
     // Check that we found tracks with notes
     const tracksWithNotes = trackAnalyses.filter((analysis: any) => analysis.noteCount > 0)
     expect(tracksWithNotes.length).toBeGreaterThan(0)
+    
+    // Test track selection logic with the new priority system
+    const suitableTracks = trackAnalyses.filter((t: any) => !t.isDrums && !t.isOrchestral)
+    suitableTracks.sort((a: any, b: any) => {
+      // Primary sort by major priority level
+      if (a.instrumentPriority !== b.instrumentPriority) {
+        return a.instrumentPriority - b.instrumentPriority
+      }
+      // Secondary sort by note count (more notes = better)
+      return b.noteCount - a.noteCount
+    })
+    
+    console.log('Suitable tracks after filtering and sorting:', suitableTracks.map((t: any) => ({
+      instrument: t.instrumentName,
+      priority: t.instrumentPriority,
+      notes: t.noteCount,
+      program: t.programNumber
+    })))
+    
+    if (suitableTracks.length > 0) {
+      const selectedTrack = suitableTracks[0]
+      console.log('Selected track:', {
+        instrument: selectedTrack.instrumentName,
+        priority: selectedTrack.instrumentPriority,
+        notes: selectedTrack.noteCount,
+        program: selectedTrack.programNumber
+      })
+      
+      // Should select trumpet with highest note count (241 notes) in level 3
+      // since there's no alto sax (level 1) or other sax (level 2) in this file
+      // Program 73=flute, 71=clarinet, 70=bassoon, 60=trumpet, 56=trumpet, 57=trumpet
+      expect(selectedTrack.instrumentPriority).toBe(3) // Level 3 (flute, clarinet, trumpet, violin)
+      expect(['flute', 'clarinet', 'trumpet'].includes(selectedTrack.instrumentName)).toBe(true)
+    }
   })
 })
