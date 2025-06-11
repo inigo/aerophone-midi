@@ -16,6 +16,30 @@ This application requires a browser that supports the Web MIDI API (e.g. recent 
 
 You may well need to connect the aerophone physically, rather than via Bluetooth.
 
+## Project Structure
+
+The application is built with TypeScript and uses the Web MIDI API to interface with MIDI devices. Here's an overview of the main files:
+
+### Main Files
+
+- `index.html` - The main HTML file that provides the structure for the web application, including sections for MIDI status, device list, musical notation, and
+  MIDI messages.
+
+- `src/main.ts` - The entry point of the application that initializes the Web MIDI API and creates an instance of the MIDIApp.
+
+- `src/midi-app.ts` - Contains the MIDIApp class that manages MIDI device connections, sets up event listeners for MIDI inputs, processes MIDI messages, and
+  integrates with the NotationRenderer.
+
+- `src/notation.ts` - Implements the NotationRenderer class that handles the visual representation of musical notation using the VexFlow library. It converts
+  MIDI notes to musical notation and renders them on a stave.
+
+- `src/types.ts` - Defines TypeScript interfaces for MIDI messages, devices, and event data to provide type safety throughout the application.
+
+### Functionality
+
+The application listens for MIDI input from connected devices, displays the received MIDI messages in real-time, and renders the notes being played as musical
+notation. It supports note on/off events and updates the notation display dynamically as notes are played.
+
 ## License
 
 This project is licensed under the GPL v3 License - see the [LICENSE](LICENSE) file for details.
