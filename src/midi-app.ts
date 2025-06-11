@@ -71,7 +71,7 @@ export class MIDIApp {
   private setupInputListeners(input: Input): void {
     input.addListener('noteon', (event) => {
       this.notationRenderer.startNote(event.note.number)
-      this.logMessage(`${input.name}: Note ON - ${event.note.name}${event.note.octave} (velocity: ${event.velocity})`)
+      this.logMessage(`${input.name}: Note ON - ${event.note.name}${event.note.octave} (velocity: ${(event as any).velocity || 127})`)
     })
     
     input.addListener('noteoff', (event) => {
@@ -86,7 +86,7 @@ export class MIDIApp {
 
   private formatMIDIMessage(message: any): string {
     const data = Array.from(message.data || message.rawData || [])
-    return `[${data.map(byte => byte.toString(16).padStart(2, '0')).join(' ')}]`
+    return `[${data.map((byte: any) => byte.toString(16).padStart(2, '0')).join(' ')}]`
   }
 
   private logMessage(message: string): void {
@@ -99,7 +99,7 @@ export class MIDIApp {
     this.messageLogElement.textContent += logEntry
     
     if (this.messageCount > 100) {
-      const lines = this.messageLogElement.textContent.split('\n')
+      const lines = this.messageLogElement.textContent?.split('\n') || []
       this.messageLogElement.textContent = lines.slice(-50).join('\n')
       this.messageCount = 50
     }

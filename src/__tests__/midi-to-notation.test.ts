@@ -22,7 +22,6 @@ vi.mock('webmidi', () => {
 vi.mock('../notation')
 
 describe('MIDI to Notation Integration', () => {
-  let app: MIDIApp
   let mockNotationRenderer: any
   
   beforeEach(() => {
@@ -39,7 +38,7 @@ describe('MIDI to Notation Integration', () => {
     
     vi.mocked(NotationRenderer).mockImplementation(() => mockNotationRenderer)
     
-    app = new MIDIApp()
+    new MIDIApp()
   })
 
   it('should create notation renderer with correct container', () => {

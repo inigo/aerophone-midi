@@ -25,6 +25,7 @@
     "vitest": "^3.2.1"
   },
   "dependencies": {
+    "midi-parser-js": "^4.0.4",
     "vexflow": "^5.0.0",
     "webmidi": "^3.1.11"
   },

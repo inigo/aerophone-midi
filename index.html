@@ -5,22 +5,61 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aerophone MIDI</title>
+    <style>
+      .nav-btn {
+        padding: 10px 20px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        background: #f0f0f0;
+        cursor: pointer;
+      }
+      .nav-btn.active {
+        background: #007cba;
+        color: white;
+      }
+      .nav-btn:hover {
+        background: #e0e0e0;
+      }
+      .nav-btn.active:hover {
+        background: #005a85;
+      }
+    </style>
   </head>
   <body>
     <div id="app">
       <h1>Aerophone MIDI</h1>
-      <div id="midi-status">MIDI not supported</div>
-      <div id="devices">
-        <h2>MIDI Devices</h2>
-        <div id="device-list"></div>
+      
+      <nav style="margin-bottom: 20px;">
+        <button id="live-page-btn" class="nav-btn active">Live MIDI</button>
+        <button id="file-page-btn" class="nav-btn">MIDI File Upload</button>
+      </nav>
+
+      <div id="live-page">
+        <div id="midi-status">MIDI not supported</div>
+        <div id="devices">
+          <h2>MIDI Devices</h2>
+          <div id="device-list"></div>
+        </div>
+        <div id="notation">
+          <h2>Musical Notation</h2>
+          <div id="stave-container"></div>
+        </div>
+        <div id="messages">
+          <h2>MIDI Messages</h2>
+          <pre id="message-log"></pre>
+        </div>
       </div>
-      <div id="notation">
-        <h2>Musical Notation</h2>
-        <div id="stave-container"></div>
-      </div>
-      <div id="messages">
-        <h2>MIDI Messages</h2>
-        <pre id="message-log"></pre>
+
+      <div id="file-page" style="display: none;">
+        <div id="file-upload-section">
+          <h2>Upload MIDI File</h2>
+          <input type="file" id="midi-file-input" accept=".mid,.midi" />
+          <button id="clear-notes-btn" style="margin-left: 10px;">Clear</button>
+        </div>
+        <div id="file-notation">
+          <h2>Musical Notation</h2>
+          <div id="file-stave-container"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -10,12 +10,14 @@ vi.mock('vexflow', () => {
     }))
   }))
   
-  MockRenderer.Backends = {
-    SVG: 'svg'
-  }
+  const RendererWithBackends = Object.assign(MockRenderer, {
+    Backends: {
+      SVG: 'svg'
+    }
+  })
   
   return {
-    Renderer: MockRenderer,
+    Renderer: RendererWithBackends,
     Stave: vi.fn().mockImplementation(() => ({
       addClef: vi.fn().mockReturnThis(),
       addTimeSignature: vi.fn().mockReturnThis(),

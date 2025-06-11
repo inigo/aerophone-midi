@@ -12,9 +12,7 @@ export class NotationRenderer {
   private context: any = null
   private staves: Stave[] = []
   private notes: StaveNote[] = []
-  private voice: Voice | null = null
   private activeNotes: Map<number, ActiveNote> = new Map()
-  private currentStaveIndex: number = 0
 
   constructor(containerId: string) {
     this.initializeRenderer(containerId)
@@ -29,7 +27,7 @@ export class NotationRenderer {
 
     container.innerHTML = ''
     
-    this.renderer = new Renderer(container, Renderer.Backends.SVG)
+    this.renderer = new Renderer(container as HTMLDivElement, Renderer.Backends.SVG)
     this.renderer.resize(800, 1200) // Adjusted height for closer spacing
     this.context = this.renderer.getContext()
     
@@ -45,8 +43,6 @@ export class NotationRenderer {
       stave.setContext(this.context).draw()
       this.staves.push(stave)
     }
-    
-    this.voice = new Voice({ num_beats: 4, beat_value: 4 })
   }
 
   startNote(midiNote: number): void {
@@ -205,7 +201,7 @@ export class NotationRenderer {
   }
 
   private drawNotesOnStave(notes: StaveNote[], stave: Stave): void {
-    const voice = new Voice({ num_beats: 4, beat_value: 4 })
+    const voice = new Voice({ numBeats: 4, beatValue: 4 })
     voice.addTickables(notes)
     
     const formatter = new Formatter()
@@ -214,56 +210,6 @@ export class NotationRenderer {
     voice.draw(this.context, stave)
   }
 
-  private selectNotesForDisplay(): StaveNote[] {
-    const result: StaveNote[] = []
-    let totalDuration = 0
-    
-    // Start from the most recent note and work backwards
-    for (let i = this.notes.length - 1; i >= 0; i--) {
-      const note = this.notes[i]
-      const noteDuration = (note as any).duration || 'q'
-      const noteDurationValue = this.getNoteDurationValue(noteDuration)
-      
-      // If adding this note would exceed 4 beats, stop
-      if (totalDuration + noteDurationValue > 4) {
-        break
-      }
-      
-      // Add the note to the beginning of our result array
-      result.unshift(note)
-      totalDuration += noteDurationValue
-    }
-    
-    return result
-  }
-
-  private calculateTotalDuration(notes: StaveNote[]): number {
-    return notes.reduce((total, note) => {
-      // Access duration from the note's properties
-      const duration = (note as any).duration || 'q'
-      return total + this.getNoteDurationValue(duration)
-    }, 0)
-  }
-
-  private fitNotesInMeasure(notes: StaveNote[], maxBeats: number): StaveNote[] {
-    const result: StaveNote[] = []
-    let currentDuration = 0
-    
-    for (let i = notes.length - 1; i >= 0; i--) {
-      const note = notes[i]
-      const duration = (note as any).duration || 'q'
-      const noteDuration = this.getNoteDurationValue(duration)
-      
-      if (currentDuration + noteDuration <= maxBeats) {
-        result.unshift(note)
-        currentDuration += noteDuration
-      } else {
-        break
-      }
-    }
-    
-    return result
-  }
 
   private getNoteDurationValue(duration: string): number {
     switch (duration) {
@@ -276,17 +222,6 @@ export class NotationRenderer {
     }
   }
 
-  private getBestRestDuration(duration: number): string {
-    // Round to avoid floating point precision issues
-    duration = Math.round(duration * 16) / 16
-    
-    if (duration >= 4) return 'wr'
-    if (duration >= 2) return 'hr'
-    if (duration >= 1) return 'qr'
-    if (duration >= 0.5) return '8r'
-    if (duration >= 0.25) return '16r'
-    return '16r' // Default to smallest rest
-  }
 
   private midiToNoteInfo(midiNote: number): { noteName: string; octave: number; accidental: Accidental | null } {
     const noteMap = [
