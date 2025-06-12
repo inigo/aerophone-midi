@@ -44,6 +44,8 @@ notation. It supports note on/off events and updates the notation display dynami
 
 This project is licensed under the GPL v3 License - see the [LICENSE](LICENSE) file for details.
 
+Test .mid files in the `src/__tests__` directory are downloaded from https://midifind.com/ and are copyright their authors.
+
 Copyright (C) 2025 Inigo Surguy
 
 This program is free software: you can redistribute it and/or modify
